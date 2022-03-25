@@ -34,7 +34,7 @@ class BaseMeta(ormar.ModelMeta):
 class User(ormar.Model):
 
     class Meta(BaseMeta):
-        tablename = "user"
+        tablename = "users"
 
     id: int = ormar.BigInteger(primary_key=True)
     tg_user_id: int = ormar.BigInteger(unique=True)
@@ -49,7 +49,7 @@ class User(ormar.Model):
 class Channel(ormar.Model):
 
     class Meta(BaseMeta):
-        tablename = 'channel'
+        tablename = 'channels'
 
     id: int = ormar.BigInteger(primary_key=True)
     tg_channel_id: int = ormar.BigInteger(unique=True)
@@ -61,7 +61,7 @@ class Channel(ormar.Model):
 class Group(ormar.Model):
 
     class Meta(BaseMeta):
-        tablename = "group"
+        tablename = "groups"
 
     id: int = ormar.BigInteger(primary_key=True)
     tg_group_id: int = ormar.BigInteger(unique=True)
@@ -74,7 +74,7 @@ class Group(ormar.Model):
 class UserChannel(ormar.Model):
 
     class Meta(BaseMeta):
-        tablename = "user_channel"
+        tablename = "user_channels"
 
     id: int = ormar.BigInteger(primary_key=True)
     channel: Channel = ormar.ForeignKey(Channel, related_name='user_channels')
@@ -87,7 +87,7 @@ class UserChannel(ormar.Model):
 class UserGroup(ormar.Model):
 
     class Meta(BaseMeta):
-        tablename = "user_group"
+        tablename = "user_groups"
 
     id: int = ormar.BigInteger(primary_key=True)
     group: Group = ormar.ForeignKey(Group, related_name='user_groups')
@@ -100,7 +100,7 @@ class UserGroup(ormar.Model):
 class CountUserGroup(ormar.Model):
 
     class Meta(BaseMeta):
-        tablename = "count_user_group"
+        tablename = "count_user_groups"
 
     id: int = ormar.BigInteger(primary_key=True)
     group: Group = ormar.ForeignKey(Group, related_name='count_user_groups')
@@ -111,7 +111,7 @@ class CountUserGroup(ormar.Model):
 class CountUserChannel(ormar.Model):
 
     class Meta(BaseMeta):
-        tablename = "count_user_channel"
+        tablename = "count_user_channels"
 
     id: int = ormar.BigInteger(primary_key=True)
     channel: Channel = ormar.ForeignKey(Channel, related_name='count_user_channels')
@@ -122,7 +122,7 @@ class CountUserChannel(ormar.Model):
 class LifetimeUserGroup(ormar.Model):
 
     class Meta(BaseMeta):
-        tablename = "lifetime_user_group"
+        tablename = "lifetime_user_groups"
 
     id: int = ormar.BigInteger(primary_key=True)
     lifetime_user: str = ormar.String(max_length=50, choices=list(LifetimeEnum))
@@ -132,7 +132,7 @@ class LifetimeUserGroup(ormar.Model):
 class LifetimeUserChannel(ormar.Model):
 
     class Meta(BaseMeta):
-        tablename = "lifetime_user_channel"
+        tablename = "lifetime_user_channels"
 
     id: int = ormar.BigInteger(primary_key=True)
     lifetime_user: str = ormar.String(max_length=50, choices=list(LifetimeEnum))
