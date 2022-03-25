@@ -1,0 +1,13 @@
+API_TOKEN: ''
+
+DB_USER: 'postgres'
+DB_PASSWORD: '123456'
+DB_HOST: 'localhost'
+DB_PORT: 5432
+DB_NAME: 'db'
+
+DB_OLD_USER: 'postgres'
+DB_OLD_PASSWORD: '123456'
+DB_OLD_HOST: 'localhost'
+DB_OLD_PORT: 5432
+DB_OLD_NAME: 'db_old'
