@@ -136,7 +136,7 @@ class LifetimeUserChannel(ormar.Model):
 
     id: int = ormar.BigInteger(primary_key=True)
     lifetime_user: str = ormar.String(max_length=50, choices=list(LifetimeEnum))
-    user_group: UserChannel = ormar.ForeignKey(UserChannel, related_name='lifetime_user_channels')
+    user_channel: UserChannel = ormar.ForeignKey(UserChannel, related_name='lifetime_user_channels')
 
 
 async def connect_db():

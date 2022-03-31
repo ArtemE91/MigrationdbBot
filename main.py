@@ -9,7 +9,7 @@ from models import models as db_new
 from models import models_old_db as db_old
 import asyncio
 
-from dependencies import bot
+from dependencies import bot, dp
 from serialize import get_dict_user, ChannelDb, GroupDb
 
 
@@ -26,6 +26,8 @@ async def update_info_user():
             try:
                 user_info = await bot.get_chat_member(group.id, user.id)
             except aiogram.utils.exceptions.BadRequest as e:
+                pass
+            except aiogram.utils.exceptions.BotKicked as e:
                 pass
             else:
                 obj_user = get_dict_user(user_info.user)
@@ -91,6 +93,8 @@ async def update_user_channel():
                 is_exit = False
             except BadRequest as e:
                 is_exit = True
+            except aiogram.utils.exceptions.BotKicked as e:
+                logger.error("Kick Channel")
             check_duplicate = await db_new.UserChannel.objects.filter(channel__tg_channel_id=channel.id, user__tg_user_id=user.id).all()
             if check_duplicate:
                 continue
@@ -103,8 +107,9 @@ async def update_user_channel():
                 kwargs = dict(channel=new_channel, user=new_user, is_exit=is_exit)
                 if is_exit:
                     kwargs['date_exit'] = datetime.datetime.now().date()
-                await db_new.UserChannel.objects.create(**kwargs)
-                logger.success(kwargs)
+                if not is_exit:
+                    await db_new.UserChannel.objects.create(**kwargs)
+                    logger.success(kwargs)
 
 
 async def update_user_group():
@@ -117,6 +122,8 @@ async def update_user_group():
                 is_exit = False
             except BadRequest as e:
                 is_exit = True
+            except aiogram.utils.exceptions.BotKicked as e:
+                logger.error("Kick Bot")
             check_duplicate = await db_new.UserGroup.objects.filter(group__tg_group_id=group.id, user__tg_user_id=user.id).all()
             if check_duplicate:
                 continue
@@ -129,36 +136,55 @@ async def update_user_group():
                 kwargs = dict(group=new_group, user=new_user, is_exit=is_exit)
                 if is_exit:
                     kwargs['date_exit'] = datetime.datetime.now().date()
-                await db_new.UserGroup.objects.create(**kwargs)
-                logger.success(kwargs)
+                if not is_exit:
+                    await db_new.UserGroup.objects.create(**kwargs)
+                    logger.success(kwargs)
 
 
+@dp.errors_handler(exception=aiogram.utils.exceptions.RetryAfter)
 async def update_count_user_group():
     groups = await db_new.Group.objects.all()
     for group in groups:
         try:
             count = await bot.get_chat_members_count(group.tg_group_id)
         except ChatNotFound:
-            logger.error(group.tg_group_id)
+            logger.error(f"ChatNotFound {group.tg_group_id}")
+            await db_new.Group.objects.delete(tg_group_id=group.tg_group_id)
+        except aiogram.utils.exceptions.BotKicked:
+            logger.error(f"Kick Group {group.tg_group_id}")
             await db_new.Group.objects.delete(tg_group_id=group.tg_group_id)
         else:
             await db_new.CountUserGroup.objects.create(count=count, group=group)
             logger.success(f"group_id = {group.tg_group_id} {count=}")
 
 
+@dp.errors_handler(exception=aiogram.utils.exceptions.RetryAfter)
 async def update_count_channel_group():
     channels = await db_new.Channel.objects.all()
     for channel in channels:
         try:
             count = await bot.get_chat_members_count(channel.tg_channel_id)
         except ChatNotFound:
-            logger.error(channel.tg_channel_id)
+            logger.error(f"ChatNotFound {channel.tg_channel_id}")
+            await db_new.Channel.objects.delete(tg_channel_id=channel.tg_channel_id)
+        except aiogram.utils.exceptions.BotKicked:
+            logger.error(f"Kick channel{channel.tg_channel_id}")
             await db_new.Channel.objects.delete(tg_channel_id=channel.tg_channel_id)
         else:
             await db_new.CountUserChannel.objects.create(count=count, channel=channel)
             logger.success(f"channel_id = {channel.tg_channel_id} {count=}")
 
 
+async def get_users_to_group():
+    groups = await db_new.Group.objects.all()
+    for group in groups:
+        users = await db_new.User.objects.prefetch_related("users_groups").filter(
+            users_groups__group__tg_group_id=group.tg_group_id
+        ).all()
+        for i in users:
+            logger.info(i)
+
+
 if __name__ == "__main__":
-    asyncio.get_event_loop().run_until_complete(update_info_user())
+    asyncio.get_event_loop().run_until_complete(update_count_channel_group())
 
